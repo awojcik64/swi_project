@@ -2,20 +2,29 @@ package pl.kielce.tu.swi_project.controller;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.util.Callback;
 import pl.kielce.tu.swi_project.chernoff.ChernoffBuilderDirector;
 import pl.kielce.tu.swi_project.chernoff.ChernoffFaceBuilderImpl;
 import pl.kielce.tu.swi_project.chernoff.resources.FaceBundle;
@@ -49,11 +58,27 @@ public class MainController implements Initializable {
 
     private FaceBundle bundle;
 
+    private Image mapImage;
+
     @FXML private TableView<FaceElementRule> accidentsRules;
+    @FXML private TableColumn<FaceElementRule, ImageView> accidentsRulesImageColumn;
+    @FXML private TableColumn<FaceElementRule, String> accidentsRulesRangeColumn;
+
     @FXML private TableView<FaceElementRule> victimsRules;
+    @FXML private TableColumn<FaceElementRule, ImageView> victimsRulesImageColumn;
+    @FXML private TableColumn<FaceElementRule, String> victimsRulesRangeColumn;
+
     @FXML private TableView<FaceElementRule> injuredRules;
+    @FXML private TableColumn<FaceElementRule, ImageView> injuredRulesImageColumn;
+    @FXML private TableColumn<FaceElementRule, String> injuredRulesRangeColumn;
+
     @FXML private TableView<FaceElementRule> afterAlcoholUsageRules;
+    @FXML private TableColumn<FaceElementRule, ImageView> afterAlcoholUsageRulesImageColumn;
+    @FXML private TableColumn<FaceElementRule, String> afterAlcoholUsageRulesRangeColumn;
+
     @FXML private TableView<FaceElementRule> drunkDriversRules;
+    @FXML private TableColumn<FaceElementRule, ImageView> drunkRulesImageColumn;
+    @FXML private TableColumn<FaceElementRule, String> drunkRulesRangeColumn;
 
     public MainController() {
         voivodeshipMapPosition.put(1, new Point(110, 329)); //Dolnośląskie
@@ -73,16 +98,33 @@ public class MainController implements Initializable {
         voivodeshipMapPosition.put(15, new Point(160, 245));//Wielkopolskie
         voivodeshipMapPosition.put(16, new Point(80, 115));//Zachodnio-pomorskie
         voivodeshipMapPosition.put(17, new Point(355, 210));//KSP Warszawa
+
+    }
+
+    public void setupColumns(TableColumn<FaceElementRule, ImageView> imageColumn, TableColumn<FaceElementRule, String> rangeColumn) {
+        imageColumn.setCellValueFactory(new PropertyValueFactory<FaceElementRule, ImageView>("image"));
+        rangeColumn.setCellValueFactory(param -> {
+            if(param.getValue()!=null) {
+                return new SimpleStringProperty(param.getValue().getMin()+" - "+param.getValue().getMax());
+            }
+            else return new SimpleStringProperty("<N/A>");
+        });
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.bundle = new FaceBundle();
+        this.setupColumns(accidentsRulesImageColumn, accidentsRulesRangeColumn);
+//        this.accidentsRules.addEventFilter(ScrollEvent.ANY, Event::consume);
+        this.setupColumns(victimsRulesImageColumn, victimsRulesRangeColumn);
+        this.setupColumns(injuredRulesImageColumn, injuredRulesRangeColumn);
+        this.setupColumns(afterAlcoholUsageRulesImageColumn, afterAlcoholUsageRulesRangeColumn);
+        this.setupColumns(drunkRulesImageColumn, drunkRulesRangeColumn);
 
         this.builderDirector = new ChernoffBuilderDirector(new ChernoffFaceBuilderImpl(this.bundle));
-        Image mapImage = new Image(getClass().getResourceAsStream("../img/poland2.png"));
+        this.mapImage = new Image(getClass().getResourceAsStream("../img/poland2.png"));
         GraphicsContext context = mapCanvas.getGraphicsContext2D();
-        context.drawImage(mapImage, 0.0, 0.0, mapCanvas.getWidth(), mapCanvas.getHeight());
+        context.drawImage(this.mapImage, 0.0, 0.0, mapCanvas.getWidth(), mapCanvas.getHeight());
 
         readDataButton.setOnAction(e -> {
             try {
@@ -96,6 +138,7 @@ public class MainController implements Initializable {
                 chooser.setInitialDirectory(new File(System.getProperty("user.dir")));
                 File dataFile = chooser.showOpenDialog(((Node)e.getTarget()).getScene().getWindow());
                 if(dataFile != null) {
+                    reloadMap();
                     CSVReader reader = new CSVReaderBuilder(new FileReader(dataFile))
                             .withSkipLines(1)
                             .build();
@@ -122,13 +165,27 @@ public class MainController implements Initializable {
                         Image face = builderDirector.make(datum);
                         mapCanvas.getGraphicsContext2D().drawImage(face, voivodeshipMapPosition.get(datum.getId()).getX()-face.getWidth()/2, voivodeshipMapPosition.get(datum.getId()).getY()-face.getHeight()/2);
                     });
+
+                    accidentsRules.setItems(FXCollections.observableList(bundle.getMouths()));
+                    victimsRules.setItems(FXCollections.observableList(bundle.getEyeBrows()));
+                    injuredRules.setItems(FXCollections.observableList(bundle.getEyes()));
+                    afterAlcoholUsageRules.setItems(FXCollections.observableList(bundle.getEars()));
+                    drunkDriversRules.setItems(FXCollections.observableList(bundle.getNoses()));
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         });
+    } //END initialize
+
+    public void reloadMap() {
+        this.mapCanvas.getGraphicsContext2D().clearRect(0, 0, mapCanvas.getWidth(), mapCanvas.getHeight());
+        this.mapCanvas.getGraphicsContext2D().drawImage(this.mapImage, 0.0, 0.0, mapCanvas.getWidth(), mapCanvas.getHeight());
+    }
 
 
+
+    public void updateRules() {
 
     }
 }

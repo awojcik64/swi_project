@@ -73,7 +73,7 @@ public class ChernoffFaceBuilderImpl implements ChernoffFaceBuilder {
         for (FaceElementRule rule:
                 function.apply(bundle)) {
             if(value >= rule.getMin() && value <= rule.getMax()) {
-                image.getGraphicsContext2D().drawImage(rule.getImage(), x, y);
+                image.getGraphicsContext2D().drawImage(rule.getImage().getImage(), x, y);
             }
         }
     }
