@@ -8,6 +8,7 @@ import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -18,6 +19,7 @@ import javafx.stage.Window;
 import pl.kielce.tu.swi_project.chernoff.ChernoffBuilderDirector;
 import pl.kielce.tu.swi_project.chernoff.ChernoffFaceBuilderImpl;
 import pl.kielce.tu.swi_project.chernoff.resources.FaceBundle;
+import pl.kielce.tu.swi_project.chernoff.resources.FaceElementRule;
 import pl.kielce.tu.swi_project.model.Point;
 import pl.kielce.tu.swi_project.model.VoivodeshipData;
 import pl.kielce.tu.swi_project.statistics.ColumnStats;
@@ -45,29 +47,39 @@ public class MainController implements Initializable {
 
     private Map<Integer, Point> voivodeshipMapPosition = new HashMap<>();
 
+    private FaceBundle bundle;
+
+    @FXML private TableView<FaceElementRule> accidentsRules;
+    @FXML private TableView<FaceElementRule> victimsRules;
+    @FXML private TableView<FaceElementRule> injuredRules;
+    @FXML private TableView<FaceElementRule> afterAlcoholUsageRules;
+    @FXML private TableView<FaceElementRule> drunkDriversRules;
+
     public MainController() {
         voivodeshipMapPosition.put(1, new Point(110, 329)); //Dolnośląskie
         voivodeshipMapPosition.put(2, new Point(230, 165));//Kujawsko-pomorskie
         voivodeshipMapPosition.put(3, new Point(445, 320));//Lubelskie
-        voivodeshipMapPosition.put(4, new Point(50, 250));//Lubuskie
+        voivodeshipMapPosition.put(4, new Point(67, 240));//Lubuskie
         voivodeshipMapPosition.put(5, new Point(270, 285));//Lodzkie
         voivodeshipMapPosition.put(6, new Point(320, 455));//Malopolskie
-        voivodeshipMapPosition.put(7, new Point(350, 200));//Mazowieckie
-        voivodeshipMapPosition.put(8, new Point(190, 390));//Opolskie
+        voivodeshipMapPosition.put(7, new Point(360, 285));//Mazowieckie
+        voivodeshipMapPosition.put(8, new Point(190, 370));//Opolskie
         voivodeshipMapPosition.put(9, new Point(415, 440));//Podkarpackie
         voivodeshipMapPosition.put(10, new Point(450, 140));//Podlaskie
         voivodeshipMapPosition.put(11, new Point(200, 60));//Pomorskie
-        voivodeshipMapPosition.put(12, new Point(250, 400));//Slaskie
+        voivodeshipMapPosition.put(12, new Point(250, 410));//Slaskie
         voivodeshipMapPosition.put(13, new Point(350, 370));//Swietokrzyskie
         voivodeshipMapPosition.put(14, new Point(340, 90));//Warminsko-mazurskie
         voivodeshipMapPosition.put(15, new Point(160, 245));//Wielkopolskie
         voivodeshipMapPosition.put(16, new Point(80, 115));//Zachodnio-pomorskie
-        voivodeshipMapPosition.put(17, new Point(0, 0));//KSP Warszawa
+        voivodeshipMapPosition.put(17, new Point(355, 210));//KSP Warszawa
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        this.builderDirector = new ChernoffBuilderDirector(new ChernoffFaceBuilderImpl(new FaceBundle()));
+        this.bundle = new FaceBundle();
+
+        this.builderDirector = new ChernoffBuilderDirector(new ChernoffFaceBuilderImpl(this.bundle));
         Image mapImage = new Image(getClass().getResourceAsStream("../img/poland2.png"));
         GraphicsContext context = mapCanvas.getGraphicsContext2D();
         context.drawImage(mapImage, 0.0, 0.0, mapCanvas.getWidth(), mapCanvas.getHeight());

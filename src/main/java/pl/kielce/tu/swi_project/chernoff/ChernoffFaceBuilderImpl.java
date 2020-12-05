@@ -1,8 +1,10 @@
 package pl.kielce.tu.swi_project.chernoff;
 
 
+import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
+import javafx.scene.text.TextAlignment;
 import pl.kielce.tu.swi_project.chernoff.resources.FaceBundle;
 import pl.kielce.tu.swi_project.chernoff.resources.FaceElementRule;
 import pl.kielce.tu.swi_project.statistics.ColumnStats;
@@ -48,7 +50,14 @@ public class ChernoffFaceBuilderImpl implements ChernoffFaceBuilder {
 
     @Override
     public void drawEars(Canvas image, int value) {
-        drawImage(image, value, FaceBundle::getEars, 0, 35);
+        drawImage(image, value, FaceBundle::getEars, 0, 20);
+    }
+
+    @Override
+    public void drawLabel(Canvas image, String label) {
+        image.getGraphicsContext2D().setTextAlign(TextAlignment.CENTER);
+        image.getGraphicsContext2D().setTextBaseline(VPos.CENTER);
+        image.getGraphicsContext2D().strokeText(label, 38, 68, 70);
     }
 
     @Override

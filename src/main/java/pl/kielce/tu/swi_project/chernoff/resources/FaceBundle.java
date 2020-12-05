@@ -3,6 +3,7 @@ package pl.kielce.tu.swi_project.chernoff.resources;
 import javafx.scene.image.Image;
 import lombok.Data;
 import pl.kielce.tu.swi_project.controller.MainController;
+import pl.kielce.tu.swi_project.misc.Toolbox;
 
 import java.io.File;
 import java.net.URL;
@@ -28,7 +29,7 @@ public class FaceBundle {
 
     public FaceBundle() {
 
-        head = new Image(MainController.class.getResourceAsStream("../img/chernoff/head/head1.png"));
+        head = Toolbox.makeTransparent(new Image(MainController.class.getResourceAsStream("../img/chernoff/head/head1.png")));
         ears = new ArrayList<>();
         ears.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears1.png"))));
         ears.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears2.png"))));
@@ -42,9 +43,9 @@ public class FaceBundle {
         eyes.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/eyes/eyes2.png"))));
         eyes.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/eyes/eyes3.png"))));
         eyeBrows = new ArrayList<>();
-        eyeBrows.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/eyebrow/eyebrows1.png"))));
-        eyeBrows.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/eyebrow/eyebrows2.png"))));
         eyeBrows.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/eyebrow/eyebrows3.png"))));
+        eyeBrows.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/eyebrow/eyebrows2.png"))));
+        eyeBrows.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/eyebrow/eyebrows1.png"))));
         noses = new ArrayList<>();
         noses.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/nose/nose1.png"))));
         noses.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/nose/nose2.png"))));

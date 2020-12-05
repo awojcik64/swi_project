@@ -18,5 +18,7 @@ public interface ChernoffFaceBuilder {
 
     void drawEars(Canvas image, int value);
 
+    void drawLabel(Canvas image, String label);
+
     void acceptRules(Map<String, ColumnStats> rulesMap);
 }

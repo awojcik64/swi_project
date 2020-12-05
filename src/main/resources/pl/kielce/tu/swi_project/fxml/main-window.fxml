@@ -4,6 +4,8 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
@@ -14,7 +16,39 @@
         <tabs>
           <Tab text="Legenda">
             <content>
-              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" />
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TableView fx:id="accidentsRules" layoutX="9.0" layoutY="24.0" prefHeight="87.0" prefWidth="247.0">
+                          <columns>
+                            <TableColumn prefWidth="88.0" text="Wypadki" />
+                            <TableColumn prefWidth="158.0" />
+                          </columns>
+                        </TableView>
+                        <TableView fx:id="victimsRules" layoutX="9.0" layoutY="111.0" prefHeight="87.0" prefWidth="247.0">
+                           <columns>
+                              <TableColumn prefWidth="88.0" text="Ofiary" />
+                              <TableColumn prefWidth="158.0" text="Przedział" />
+                           </columns>
+                        </TableView>
+                        <TableView fx:id="injuredRules" layoutX="9.0" layoutY="198.0" prefHeight="87.0" prefWidth="247.0">
+                           <columns>
+                              <TableColumn prefWidth="88.0" text="Ranni" />
+                              <TableColumn prefWidth="158.0" text="Przedział" />
+                           </columns>
+                        </TableView>
+                        <TableView fx:id="afterAlcoholUsageRules" layoutX="9.0" layoutY="285.0" prefHeight="87.0" prefWidth="247.0">
+                           <columns>
+                              <TableColumn prefWidth="130.0" text="Po spożyciu alkoholu" />
+                              <TableColumn prefWidth="116.0" text="Przedział" />
+                           </columns>
+                        </TableView>
+                        <TableView fx:id="drunkDriversRules" layoutX="9.0" layoutY="372.0" prefHeight="87.0" prefWidth="247.0">
+                           <columns>
+                              <TableColumn prefWidth="131.0" text="Nietrzeźwi kierujący" />
+                              <TableColumn prefWidth="115.0" text="Przedział" />
+                           </columns>
+                        </TableView>
+                     </children></AnchorPane>
             </content>
           </Tab>
           <Tab text="Dane">
