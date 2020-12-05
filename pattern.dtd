@@ -1,0 +1,3 @@
+<!ELEMENT voivodeship (x, y)>
+<!ELEMENT x (#PCDATA)>
+<!ELEMENT y (#PCDATA)>
