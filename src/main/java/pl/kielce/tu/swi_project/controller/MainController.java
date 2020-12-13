@@ -97,7 +97,7 @@ public class MainController implements Initializable {
         voivodeshipMapPosition.put(14, new Point(340, 90));//Warminsko-mazurskie
         voivodeshipMapPosition.put(15, new Point(160, 245));//Wielkopolskie
         voivodeshipMapPosition.put(16, new Point(80, 115));//Zachodnio-pomorskie
-        voivodeshipMapPosition.put(17, new Point(355, 210));//KSP Warszawa
+        voivodeshipMapPosition.put(17, new Point(355, 200));//KSP Warszawa
 
     }
 

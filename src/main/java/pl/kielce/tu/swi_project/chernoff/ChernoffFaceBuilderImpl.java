@@ -79,10 +79,11 @@ public class ChernoffFaceBuilderImpl implements ChernoffFaceBuilder {
     }
 
     private void setRules(Function<FaceBundle, List<FaceElementRule>> function,Map<String, ColumnStats> rulesMap, String columnName) {
+        function.apply(bundle).get(0).setMin(rulesMap.get(columnName).getMin());
         function.apply(bundle).get(0).setMax(rulesMap.get(columnName).getQuantile33());
         function.apply(bundle).get(1).setMin(rulesMap.get(columnName).getQuantile33()+1);
         function.apply(bundle).get(1).setMax(rulesMap.get(columnName).getQuantile66());
         function.apply(bundle).get(2).setMin(rulesMap.get(columnName).getQuantile66()+1);
-        function.apply(bundle).get(2).setMax(Integer.MAX_VALUE);
+        function.apply(bundle).get(2).setMax(rulesMap.get(columnName).getMax());
     }
 }
