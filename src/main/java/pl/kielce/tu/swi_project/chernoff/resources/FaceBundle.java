@@ -5,6 +5,7 @@ import lombok.Data;
 import pl.kielce.tu.swi_project.controller.MainController;
 import pl.kielce.tu.swi_project.misc.Toolbox;
 
+import javax.tools.Tool;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -16,6 +17,8 @@ import java.util.Objects;
 public class FaceBundle {
 
     public Image head;
+
+    private List<FaceElementRule> hair;
 
     private List<FaceElementRule> ears;
 
@@ -29,11 +32,15 @@ public class FaceBundle {
 
     public FaceBundle() {
 
-        head = Toolbox.makeTransparent(new Image(MainController.class.getResourceAsStream("../img/chernoff/head/head1.png")));
+        head = Toolbox.makeTransparent(new Image(MainController.class.getResourceAsStream("../img/chernoff/head/head3.png")));
+        hair = new ArrayList<>();
+        hair.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/hair/hair1.png"))));
+        hair.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/hair/hair2.png"))));
+        hair.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/hair/hair3.png"))));
         ears = new ArrayList<>();
-        ears.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears1.png"))));
-        ears.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears2.png"))));
-        ears.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears3.png"))));
+        ears.add(new FaceElementRule(0, 0, Toolbox.makeTransparent(new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears1.png")))));
+        ears.add(new FaceElementRule(0, 0, Toolbox.makeTransparent(new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears2.png")))));
+        ears.add(new FaceElementRule(0, 0, Toolbox.makeTransparent(new Image(MainController.class.getResourceAsStream("../img/chernoff/ears/ears3.png")))));
         mouths = new ArrayList<>();
         mouths.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/mouth/mouth1.png"))));
         mouths.add(new FaceElementRule(0, 0, new Image(MainController.class.getResourceAsStream("../img/chernoff/mouth/mouth2.png"))));

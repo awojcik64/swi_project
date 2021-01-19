@@ -17,7 +17,7 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("fxml/main-window.fxml"));
-        stage.setTitle("Statystyki policyjne");
+        stage.setTitle("Twarze Chernoffa");
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("css/tables.css").toExternalForm());
         stage.setScene(scene);

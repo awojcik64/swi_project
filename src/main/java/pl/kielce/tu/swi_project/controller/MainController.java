@@ -2,39 +2,46 @@ package pl.kielce.tu.swi_project.controller;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.CubicCurve;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Callback;
+import javafx.util.Duration;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import pl.kielce.tu.swi_project.chernoff.ChernoffBuilderDirector;
 import pl.kielce.tu.swi_project.chernoff.ChernoffFaceBuilderImpl;
 import pl.kielce.tu.swi_project.chernoff.resources.FaceBundle;
 import pl.kielce.tu.swi_project.chernoff.resources.FaceElementRule;
+import pl.kielce.tu.swi_project.model.BoundsIdBundle;
 import pl.kielce.tu.swi_project.model.Point;
 import pl.kielce.tu.swi_project.model.VoivodeshipData;
 import pl.kielce.tu.swi_project.statistics.ColumnStats;
 
 import java.io.File;
 import java.io.FileReader;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,6 +67,10 @@ public class MainController implements Initializable {
 
     private Image mapImage;
 
+    private Tooltip tooltip = new Tooltip();
+    private Map<String, BoundsIdBundle> tooltips = new HashMap<>();
+    private Integer selectedItem = 0;
+
     @FXML private TableView<FaceElementRule> accidentsRules;
     @FXML private TableColumn<FaceElementRule, ImageView> accidentsRulesImageColumn;
     @FXML private TableColumn<FaceElementRule, String> accidentsRulesRangeColumn;
@@ -80,7 +91,10 @@ public class MainController implements Initializable {
     @FXML private TableColumn<FaceElementRule, ImageView> drunkRulesImageColumn;
     @FXML private TableColumn<FaceElementRule, String> drunkRulesRangeColumn;
 
+
+
     public MainController() {
+
         voivodeshipMapPosition.put(1, new Point(110, 329)); //Dolnośląskie
         voivodeshipMapPosition.put(2, new Point(230, 165));//Kujawsko-pomorskie
         voivodeshipMapPosition.put(3, new Point(445, 320));//Lubelskie
@@ -99,6 +113,23 @@ public class MainController implements Initializable {
         voivodeshipMapPosition.put(16, new Point(80, 115));//Zachodnio-pomorskie
         voivodeshipMapPosition.put(17, new Point(355, 200));//KSP Warszawa
 
+    }
+
+    public static void hackTooltipStartTiming(Tooltip tooltip) {
+        try {
+            Field fieldBehavior = tooltip.getClass().getDeclaredField("BEHAVIOR");
+            fieldBehavior.setAccessible(true);
+            Object objBehavior = fieldBehavior.get(tooltip);
+
+            Field fieldTimer = objBehavior.getClass().getDeclaredField("activationTimer");
+            fieldTimer.setAccessible(true);
+            Timeline objTimer = (Timeline) fieldTimer.get(objBehavior);
+
+            objTimer.getKeyFrames().clear();
+            objTimer.getKeyFrames().add(new KeyFrame(new Duration(250)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void setupColumns(TableColumn<FaceElementRule, ImageView> imageColumn, TableColumn<FaceElementRule, String> rangeColumn) {
@@ -120,11 +151,25 @@ public class MainController implements Initializable {
         this.setupColumns(injuredRulesImageColumn, injuredRulesRangeColumn);
         this.setupColumns(afterAlcoholUsageRulesImageColumn, afterAlcoholUsageRulesRangeColumn);
         this.setupColumns(drunkRulesImageColumn, drunkRulesRangeColumn);
-
+        hackTooltipStartTiming(tooltip);
         this.builderDirector = new ChernoffBuilderDirector(new ChernoffFaceBuilderImpl(this.bundle));
         this.mapImage = new Image(getClass().getResourceAsStream("../img/poland2.png"));
         GraphicsContext context = mapCanvas.getGraphicsContext2D();
         context.drawImage(this.mapImage, 0.0, 0.0, mapCanvas.getWidth(), mapCanvas.getHeight());
+        Tooltip.install(mapCanvas, tooltip);
+        EventHandler<MouseEvent> handler = e -> {
+            tooltips.forEach((details, bounds) -> {
+                if(bounds.getRectangle().contains(e.getX(), e.getY())) {
+                    tooltip.setText(details);
+                    if(!this.selectedItem.equals(bounds.getId())) {
+                        this.selectedItem = bounds.getId();
+                        tooltip.show(mapCanvas.getParent(), mapCanvas.getScene().getWindow().getX()+e.getX(), mapCanvas.getScene().getWindow().getY()+e.getY());
+                    }
+                }
+            });
+        };
+        mapCanvas.setOnMouseMoved(handler);
+        mapCanvas.setOnMouseExited(e -> tooltip.hide());
 
         readDataButton.setOnAction(e -> {
             try {
@@ -161,13 +206,30 @@ public class MainController implements Initializable {
                     columnStatsMap.put("after_alcohol", new ColumnStats(data, VoivodeshipData::getAfterAlcoholUsage));
                     columnStatsMap.put("drunk", new ColumnStats(data, VoivodeshipData::getDrunkDrivers));
                     builderDirector.acceptRuleSet(columnStatsMap);
+                    tooltips.clear();
                     data.forEach(datum -> {
                         Image face = builderDirector.make(datum);
                         mapCanvas.getGraphicsContext2D().drawImage(face, voivodeshipMapPosition.get(datum.getId()).getX()-face.getWidth()/2, voivodeshipMapPosition.get(datum.getId()).getY()-face.getHeight()/2);
+                        tooltips.put(
+                                datum.getName()+"\n"+
+                                "Wypadki: "+ datum.getAccidentsCount() +"\n"+
+                                "Ofiary: "+ datum.getVictims()+"\n"+
+                                "Ranni: "+ datum.getInjured()+"\n"+
+                                "Po użyciu alkoholu: "+datum.getAfterAlcoholUsage()+"\n"+
+                                "Nietrzeźwi kierujący: "+datum.getDrunkDrivers(),
+                                new BoundsIdBundle(datum.getId(),
+                                        new Rectangle(
+                                                voivodeshipMapPosition.get(datum.getId()).getX()-face.getWidth()/2,
+                                                voivodeshipMapPosition.get(datum.getId()).getY()-face.getHeight()/2,
+                                                face.getWidth(),
+                                                face.getHeight()
+                                        )
+                                )
+                        );
                     });
 
                     accidentsRules.setItems(FXCollections.observableList(bundle.getMouths()));
-                    victimsRules.setItems(FXCollections.observableList(bundle.getEyeBrows()));
+                    victimsRules.setItems(FXCollections.observableList(bundle.getHair()));
                     injuredRules.setItems(FXCollections.observableList(bundle.getEyes()));
                     afterAlcoholUsageRules.setItems(FXCollections.observableList(bundle.getEars()));
                     drunkDriversRules.setItems(FXCollections.observableList(bundle.getNoses()));

@@ -8,6 +8,8 @@ import java.util.Map;
 public interface ChernoffFaceBuilder {
     void drawHead(Canvas image, int value);
 
+    void drawHair(Canvas image, int value);
+
     void drawMouth(Canvas image, int value);
 
     void drawNose(Canvas image, int value);

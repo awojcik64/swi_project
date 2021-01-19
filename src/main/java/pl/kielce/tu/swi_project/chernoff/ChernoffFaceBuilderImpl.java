@@ -29,6 +29,11 @@ public class ChernoffFaceBuilderImpl implements ChernoffFaceBuilder {
     }
 
     @Override
+    public void drawHair(Canvas image, int value) {
+        drawImage(image, value, FaceBundle::getHair,19, 0);
+    }
+
+    @Override
     public void drawMouth(Canvas image, int value) {
         drawImage(image, value, FaceBundle::getMouths, 22, 45);
     }
@@ -67,6 +72,7 @@ public class ChernoffFaceBuilderImpl implements ChernoffFaceBuilder {
         setRules(FaceBundle::getMouths, rulesMap, "accidents");
         setRules(FaceBundle::getEyes, rulesMap, "injured");
         setRules(FaceBundle::getEyeBrows, rulesMap, "victims");
+        setRules(FaceBundle::getHair, rulesMap, "victims");
     }
 
     private void drawImage(Canvas image, int value, Function<FaceBundle, List<FaceElementRule>> function, int x, int y) {
