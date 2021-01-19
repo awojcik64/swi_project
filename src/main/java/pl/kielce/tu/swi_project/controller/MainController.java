@@ -5,10 +5,7 @@ import com.opencsv.CSVReaderBuilder;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -19,17 +16,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.CubicCurve;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
-import javafx.stage.Window;
-import javafx.util.Callback;
 import javafx.util.Duration;
-import org.apache.commons.collections4.map.MultiKeyMap;
 import pl.kielce.tu.swi_project.chernoff.ChernoffBuilderDirector;
 import pl.kielce.tu.swi_project.chernoff.ChernoffFaceBuilderImpl;
 import pl.kielce.tu.swi_project.chernoff.resources.FaceBundle;
@@ -42,8 +32,11 @@ import pl.kielce.tu.swi_project.statistics.ColumnStats;
 import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MainController implements Initializable {
@@ -71,27 +64,59 @@ public class MainController implements Initializable {
     private Map<String, BoundsIdBundle> tooltips = new HashMap<>();
     private Integer selectedItem = 0;
 
-    @FXML private TableView<FaceElementRule> accidentsRules;
-    @FXML private TableColumn<FaceElementRule, ImageView> accidentsRulesImageColumn;
-    @FXML private TableColumn<FaceElementRule, String> accidentsRulesRangeColumn;
+    @FXML
+    private TableView<FaceElementRule> accidentsRules;
+    @FXML
+    private TableColumn<FaceElementRule, ImageView> accidentsRulesImageColumn;
+    @FXML
+    private TableColumn<FaceElementRule, String> accidentsRulesRangeColumn;
 
-    @FXML private TableView<FaceElementRule> victimsRules;
-    @FXML private TableColumn<FaceElementRule, ImageView> victimsRulesImageColumn;
-    @FXML private TableColumn<FaceElementRule, String> victimsRulesRangeColumn;
+    @FXML
+    private TableView<FaceElementRule> victimsRules;
+    @FXML
+    private TableColumn<FaceElementRule, ImageView> victimsRulesImageColumn;
+    @FXML
+    private TableColumn<FaceElementRule, String> victimsRulesRangeColumn;
 
-    @FXML private TableView<FaceElementRule> injuredRules;
-    @FXML private TableColumn<FaceElementRule, ImageView> injuredRulesImageColumn;
-    @FXML private TableColumn<FaceElementRule, String> injuredRulesRangeColumn;
+    @FXML
+    private TableView<FaceElementRule> injuredRules;
+    @FXML
+    private TableColumn<FaceElementRule, ImageView> injuredRulesImageColumn;
+    @FXML
+    private TableColumn<FaceElementRule, String> injuredRulesRangeColumn;
 
-    @FXML private TableView<FaceElementRule> afterAlcoholUsageRules;
-    @FXML private TableColumn<FaceElementRule, ImageView> afterAlcoholUsageRulesImageColumn;
-    @FXML private TableColumn<FaceElementRule, String> afterAlcoholUsageRulesRangeColumn;
+    @FXML
+    private TableView<FaceElementRule> afterAlcoholUsageRules;
+    @FXML
+    private TableColumn<FaceElementRule, ImageView> afterAlcoholUsageRulesImageColumn;
+    @FXML
+    private TableColumn<FaceElementRule, String> afterAlcoholUsageRulesRangeColumn;
 
-    @FXML private TableView<FaceElementRule> drunkDriversRules;
-    @FXML private TableColumn<FaceElementRule, ImageView> drunkRulesImageColumn;
-    @FXML private TableColumn<FaceElementRule, String> drunkRulesRangeColumn;
+    @FXML
+    private TableView<FaceElementRule> drunkDriversRules;
+    @FXML
+    private TableColumn<FaceElementRule, ImageView> drunkRulesImageColumn;
+    @FXML
+    private TableColumn<FaceElementRule, String> drunkRulesRangeColumn;
 
+    private Map<String, ColumnStats> columnStatsMap = new HashMap<>();
 
+    @FXML
+    private TableView<Map.Entry<String, ColumnStats>> statsTable;
+    @FXML
+    private TableColumn<Map.Entry<String, ColumnStats>, String> statsNameColumn;
+    @FXML
+    private TableColumn<Map.Entry<String, ColumnStats>, String> statsMinColumn;
+    @FXML
+    private TableColumn<Map.Entry<String, ColumnStats>, String> statsQ33Column;
+    @FXML
+    private TableColumn<Map.Entry<String, ColumnStats>, String> statsMedianColumn;
+    @FXML
+    private TableColumn<Map.Entry<String, ColumnStats>, String> statsQ66Column;
+    @FXML
+    private TableColumn<Map.Entry<String, ColumnStats>, String> statsMaxColumn;
+    @FXML
+    private TableColumn<Map.Entry<String, ColumnStats>, String> statsAverageColumn;
 
     public MainController() {
 
@@ -132,25 +157,32 @@ public class MainController implements Initializable {
         }
     }
 
-    public void setupColumns(TableColumn<FaceElementRule, ImageView> imageColumn, TableColumn<FaceElementRule, String> rangeColumn) {
+    public void setupLegendColumns(TableColumn<FaceElementRule, ImageView> imageColumn, TableColumn<FaceElementRule, String> rangeColumn) {
         imageColumn.setCellValueFactory(new PropertyValueFactory<FaceElementRule, ImageView>("image"));
         rangeColumn.setCellValueFactory(param -> {
-            if(param.getValue()!=null) {
-                return new SimpleStringProperty(param.getValue().getMin()+" - "+param.getValue().getMax());
-            }
-            else return new SimpleStringProperty("<N/A>");
+            if (param.getValue() != null) {
+                return new SimpleStringProperty(param.getValue().getMin() + " - " + param.getValue().getMax());
+            } else return new SimpleStringProperty("<N/A>");
+        });
+    }
+
+    public void setStatsColumns(TableColumn<Map.Entry<String, ColumnStats>, String> statsColumn, Function<Map.Entry<String, ColumnStats>, String> extractor) {
+        statsColumn.setCellValueFactory(param -> {
+            if (param.getValue() != null) {
+                return new SimpleStringProperty(extractor.apply(param.getValue()));
+            } else return new SimpleStringProperty("<N/A>");
         });
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         this.bundle = new FaceBundle();
-        this.setupColumns(accidentsRulesImageColumn, accidentsRulesRangeColumn);
+        this.setupLegendColumns(accidentsRulesImageColumn, accidentsRulesRangeColumn);
 //        this.accidentsRules.addEventFilter(ScrollEvent.ANY, Event::consume);
-        this.setupColumns(victimsRulesImageColumn, victimsRulesRangeColumn);
-        this.setupColumns(injuredRulesImageColumn, injuredRulesRangeColumn);
-        this.setupColumns(afterAlcoholUsageRulesImageColumn, afterAlcoholUsageRulesRangeColumn);
-        this.setupColumns(drunkRulesImageColumn, drunkRulesRangeColumn);
+        this.setupLegendColumns(victimsRulesImageColumn, victimsRulesRangeColumn);
+        this.setupLegendColumns(injuredRulesImageColumn, injuredRulesRangeColumn);
+        this.setupLegendColumns(afterAlcoholUsageRulesImageColumn, afterAlcoholUsageRulesRangeColumn);
+        this.setupLegendColumns(drunkRulesImageColumn, drunkRulesRangeColumn);
         hackTooltipStartTiming(tooltip);
         this.builderDirector = new ChernoffBuilderDirector(new ChernoffFaceBuilderImpl(this.bundle));
         this.mapImage = new Image(getClass().getResourceAsStream("../img/poland2.png"));
@@ -159,11 +191,11 @@ public class MainController implements Initializable {
         Tooltip.install(mapCanvas, tooltip);
         EventHandler<MouseEvent> handler = e -> {
             tooltips.forEach((details, bounds) -> {
-                if(bounds.getRectangle().contains(e.getX(), e.getY())) {
+                if (bounds.getRectangle().contains(e.getX(), e.getY())) {
                     tooltip.setText(details);
-                    if(!this.selectedItem.equals(bounds.getId())) {
+                    if (!this.selectedItem.equals(bounds.getId())) {
                         this.selectedItem = bounds.getId();
-                        tooltip.show(mapCanvas.getParent(), mapCanvas.getScene().getWindow().getX()+e.getX(), mapCanvas.getScene().getWindow().getY()+e.getY());
+                        tooltip.show(mapCanvas.getParent(), mapCanvas.getScene().getWindow().getX() + e.getX(), mapCanvas.getScene().getWindow().getY() + e.getY());
                     }
                 }
             });
@@ -181,14 +213,14 @@ public class MainController implements Initializable {
                                 new FileChooser.ExtensionFilter("Plik tekstowy", "*.txt")
                         );
                 chooser.setInitialDirectory(new File(System.getProperty("user.dir")));
-                File dataFile = chooser.showOpenDialog(((Node)e.getTarget()).getScene().getWindow());
-                if(dataFile != null) {
+                File dataFile = chooser.showOpenDialog(((Node) e.getTarget()).getScene().getWindow());
+                if (dataFile != null) {
                     reloadMap();
                     CSVReader reader = new CSVReaderBuilder(new FileReader(dataFile))
                             .withSkipLines(1)
                             .build();
                     String[] row;
-                    while((row = reader.readNext())!= null) {
+                    while ((row = reader.readNext()) != null) {
                         data.add(new VoivodeshipData(Integer.parseInt(row[0]),
                                         row[1],
                                         Integer.parseInt(row[2]),
@@ -199,28 +231,29 @@ public class MainController implements Initializable {
                                 )
                         );
                     }
-                    Map<String, ColumnStats> columnStatsMap = new HashMap<>();
+
                     columnStatsMap.put("accidents", new ColumnStats(data, VoivodeshipData::getAccidentsCount));
                     columnStatsMap.put("victims", new ColumnStats(data, VoivodeshipData::getVictims));
                     columnStatsMap.put("injured", new ColumnStats(data, VoivodeshipData::getInjured));
                     columnStatsMap.put("after_alcohol", new ColumnStats(data, VoivodeshipData::getAfterAlcoholUsage));
                     columnStatsMap.put("drunk", new ColumnStats(data, VoivodeshipData::getDrunkDrivers));
                     builderDirector.acceptRuleSet(columnStatsMap);
+                    statsTable.setItems(FXCollections.observableList(new ArrayList<>(columnStatsMap.entrySet())));
                     tooltips.clear();
                     data.forEach(datum -> {
                         Image face = builderDirector.make(datum);
-                        mapCanvas.getGraphicsContext2D().drawImage(face, voivodeshipMapPosition.get(datum.getId()).getX()-face.getWidth()/2, voivodeshipMapPosition.get(datum.getId()).getY()-face.getHeight()/2);
+                        mapCanvas.getGraphicsContext2D().drawImage(face, voivodeshipMapPosition.get(datum.getId()).getX() - face.getWidth() / 2, voivodeshipMapPosition.get(datum.getId()).getY() - face.getHeight() / 2);
                         tooltips.put(
-                                datum.getName()+"\n"+
-                                "Wypadki: "+ datum.getAccidentsCount() +"\n"+
-                                "Ofiary: "+ datum.getVictims()+"\n"+
-                                "Ranni: "+ datum.getInjured()+"\n"+
-                                "Po użyciu alkoholu: "+datum.getAfterAlcoholUsage()+"\n"+
-                                "Nietrzeźwi kierujący: "+datum.getDrunkDrivers(),
+                                datum.getName() + "\n" +
+                                        "Wypadki: " + datum.getAccidentsCount() + "\n" +
+                                        "Ofiary: " + datum.getVictims() + "\n" +
+                                        "Ranni: " + datum.getInjured() + "\n" +
+                                        "Po użyciu alkoholu: " + datum.getAfterAlcoholUsage() + "\n" +
+                                        "Nietrzeźwi kierujący: " + datum.getDrunkDrivers(),
                                 new BoundsIdBundle(datum.getId(),
                                         new Rectangle(
-                                                voivodeshipMapPosition.get(datum.getId()).getX()-face.getWidth()/2,
-                                                voivodeshipMapPosition.get(datum.getId()).getY()-face.getHeight()/2,
+                                                voivodeshipMapPosition.get(datum.getId()).getX() - face.getWidth() / 2,
+                                                voivodeshipMapPosition.get(datum.getId()).getY() - face.getHeight() / 2,
                                                 face.getWidth(),
                                                 face.getHeight()
                                         )
@@ -238,16 +271,19 @@ public class MainController implements Initializable {
                 ex.printStackTrace();
             }
         });
+        setStatsColumns(statsNameColumn, Map.Entry::getKey);
+        setStatsColumns(statsMinColumn, c -> String.valueOf(c.getValue().getMin()));
+        setStatsColumns(statsQ33Column, c -> String.valueOf(c.getValue().getQuantile33()));
+        setStatsColumns(statsMedianColumn, c -> String.valueOf(c.getValue().getMedian()));
+        setStatsColumns(statsQ66Column, c -> String.valueOf(c.getValue().getQuantile66()));
+        setStatsColumns(statsMaxColumn, c -> String.valueOf(c.getValue().getMax()));
+        setStatsColumns(statsAverageColumn, c -> BigDecimal.valueOf(c.getValue().getAverage()).setScale(2, RoundingMode.HALF_UP).toString());
+
+
     } //END initialize
 
     public void reloadMap() {
         this.mapCanvas.getGraphicsContext2D().clearRect(0, 0, mapCanvas.getWidth(), mapCanvas.getHeight());
         this.mapCanvas.getGraphicsContext2D().drawImage(this.mapImage, 0.0, 0.0, mapCanvas.getWidth(), mapCanvas.getHeight());
-    }
-
-
-
-    public void updateRules() {
-
     }
 }
