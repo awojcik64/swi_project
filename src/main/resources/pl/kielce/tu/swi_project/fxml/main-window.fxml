@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
@@ -86,6 +89,14 @@
                               <TableColumn fx:id="statsAverageColumn" prefWidth="65.0" text="Średnia" />
                           </columns>
                         </TableView>
+                        <BarChart fx:id="barChart" layoutX="14.0" layoutY="234.0" prefHeight="277.0" prefWidth="545.0">
+                          <xAxis>
+                            <CategoryAxis side="BOTTOM" />
+                          </xAxis>
+                          <yAxis>
+                            <NumberAxis side="LEFT" />
+                          </yAxis>
+                        </BarChart>
                      </children></AnchorPane>
             </content>
           </Tab>

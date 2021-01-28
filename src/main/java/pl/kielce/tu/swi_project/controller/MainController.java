@@ -6,12 +6,16 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -117,6 +121,8 @@ public class MainController implements Initializable {
     private TableColumn<Map.Entry<String, ColumnStats>, String> statsMaxColumn;
     @FXML
     private TableColumn<Map.Entry<String, ColumnStats>, String> statsAverageColumn;
+    @FXML
+    private BarChart<String, Integer> barChart;
 
     public MainController() {
 
@@ -185,7 +191,7 @@ public class MainController implements Initializable {
         this.setupLegendColumns(drunkRulesImageColumn, drunkRulesRangeColumn);
         hackTooltipStartTiming(tooltip);
         this.builderDirector = new ChernoffBuilderDirector(new ChernoffFaceBuilderImpl(this.bundle));
-        this.mapImage = new Image(getClass().getResourceAsStream("../img/poland2.png"));
+        this.mapImage = new Image(getClass().getResourceAsStream("/pl/kielce/tu/swi_project/img/poland2.png"));
         GraphicsContext context = mapCanvas.getGraphicsContext2D();
         context.drawImage(this.mapImage, 0.0, 0.0, mapCanvas.getWidth(), mapCanvas.getHeight());
         Tooltip.install(mapCanvas, tooltip);
@@ -239,6 +245,21 @@ public class MainController implements Initializable {
                     columnStatsMap.put("drunk", new ColumnStats(data, VoivodeshipData::getDrunkDrivers));
                     builderDirector.acceptRuleSet(columnStatsMap);
                     statsTable.setItems(FXCollections.observableList(new ArrayList<>(columnStatsMap.entrySet())));
+
+                    ObservableList<XYChart.Data<String, Integer>> barChartData = FXCollections.observableList(
+                            data
+                                    .stream()
+                                    .map(datum -> new XYChart.Data<>(datum.getName(), datum.getAccidentsCount()))
+                            .collect(Collectors.toList())
+                    );
+
+                    XYChart.Series<String, Integer> barChartSeries = new XYChart.Series<>();
+                    barChartSeries.setName("Wypadki");
+                    barChartSeries.setData(barChartData);
+                    barChart.getData().clear();
+                    barChart.setAnimated(false);
+                    barChart.getData().add(barChartSeries);
+
                     tooltips.clear();
                     data.forEach(datum -> {
                         Image face = builderDirector.make(datum);
